@@ -20,6 +20,7 @@ import javafx.collections.*;
 import addressmodel.Person;
 import addressview.PersonEditDialogController;
 import addressview.PersonOverviewController;
+import javafx.scene.image.Image;
 import javafx.stage.Modality;
 
 /**
@@ -64,6 +65,9 @@ public class AddressApp extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("AddressApp");
+        
+        // Set the application icon.
+        this.primaryStage.getIcons().add(new Image("/resources/image/address_book.png"));
         
         initRootLayout();
         
