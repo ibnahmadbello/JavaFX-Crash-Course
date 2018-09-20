@@ -56,8 +56,8 @@
                   </GridPane>
                   <ToolBar layoutX="38.0" layoutY="219.0" prefHeight="40.0" prefWidth="213.0" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
                     <items>
-                      <Button mnemonicParsing="false" text="New..." />
-                        <Button mnemonicParsing="false" text="Edit..." />
+                      <Button mnemonicParsing="false" onAction="#handleNewPerson" text="New..." />
+                        <Button mnemonicParsing="false" onAction="#handleEditPerson" text="Edit..." />
                         <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#handleDeletePerson" text="Delete" />
                     </items>
                   </ToolBar>
