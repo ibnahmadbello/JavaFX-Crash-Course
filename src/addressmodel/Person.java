@@ -5,8 +5,10 @@
  */
 package addressmodel;
 
+import addressutil.LocalDateAdapter;
 import javafx.beans.property.*;
 import java.time.LocalDate;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * Model class for a Person
@@ -103,6 +105,7 @@ public class Person {
         return city;
     }
     
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     public LocalDate getBirthday(){
         return birthday.get();
     }

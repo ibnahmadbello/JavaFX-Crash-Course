@@ -18,10 +18,18 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.collections.*;
 import addressmodel.Person;
+import addressmodel.PersonListWrapper;
 import addressview.PersonEditDialogController;
 import addressview.PersonOverviewController;
+import addressview.RootLayoutController;
+import java.io.File;
+import java.util.prefs.Preferences;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.stage.Modality;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 /**
  *
@@ -75,11 +83,12 @@ public class AddressApp extends Application {
     }
     
     /**
-     * Initializes the root layout
+     * Initializes the root layout and tries to load the last opened
+     * person file
      */
     public void initRootLayout(){
         try {
-            // Load person overview.
+            // Load root layout from fxml file.
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(AddressApp.class.getResource("/addressview/RootLayout.fxml"));
             rootLayout = (BorderPane) loader.load();
@@ -87,9 +96,19 @@ public class AddressApp extends Application {
             // Show the scene containing the root layout.
             Scene scene = new Scene(rootLayout);
             primaryStage.setScene(scene);
+            
+            // Give the controller access to the main app.
+            RootLayoutController controller = loader.getController();
+            controller.setMainApp(this);
             primaryStage.show();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        
+        // Try to load last opened person file
+        File file = getPersonFilePath();
+        if (file != null) {
+            loadPersonDataFromFile(file);
         }
     }
     
@@ -111,6 +130,65 @@ public class AddressApp extends Application {
             controller.setAddressApp(this);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Loads person data from the specified file. The current person data will
+     * be replaced.
+     * 
+     * @param file
+     */
+    public void loadPersonDataFromFile(File file){
+        try {
+            JAXBContext context = JAXBContext.newInstance(PersonListWrapper.class);
+            Unmarshaller unmarshaller = context.createUnmarshaller();
+            
+            // Reading XML from the file and unmarshalling.
+            PersonListWrapper wrapper = (PersonListWrapper) unmarshaller.unmarshal(file);
+            
+            personData.clear();
+            personData.addAll(wrapper.getPersons());
+            
+            // Save the file path to the registry.
+            setPersonFilePath(file);
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Could not load data");
+            alert.setContentText("Could not load data from file:\n" + file.getPath());
+            
+            alert.showAndWait();
+        }
+    }
+    
+    /**
+     * Saves the current person data to the specified file
+     * 
+     * @param file
+     */
+    public void savePersonDataToFile(File file){
+        try {
+            JAXBContext jAXBContext = JAXBContext.newInstance(PersonListWrapper.class);
+            Marshaller marshaller = jAXBContext.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            
+            // Wrapping our person data
+            PersonListWrapper personListWrapper = new PersonListWrapper();
+            personListWrapper.setPersons(personData);
+            
+            // Marshalling and saving XML to the file.
+            marshaller.marshal(personListWrapper, file);
+            
+            // Save the file path to the registry.
+            setPersonFilePath(file);
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Could not save data");
+            alert.setContentText("Could not save data to file:\n" + file.getPath());
+            
+            alert.showAndWait();
         }
     }
     
@@ -152,6 +230,44 @@ public class AddressApp extends Application {
         }
     }
     
+    /**
+     * Returns the person file preference, i.e the file that was last opened.
+     * The preference is read from the OS specific registry. If no such
+     * preference can be found, null is returned.
+     * 
+     * @return
+     */
+    public File getPersonFilePath(){
+        Preferences prefs = Preferences.userNodeForPackage(AddressApp.class);
+        String filePath = prefs.get("filePath", null);
+        if (filePath != null) {
+            return new File(filePath);
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * Sets the file path of the currently loaded file. THe path is persisted in
+     * the OS specific registry.
+     * 
+     * @param file the file or null to remove the path
+     */
+    public void setPersonFilePath(File file){
+        Preferences preferences = Preferences.userNodeForPackage(AddressApp.class);
+        if (file != null) {
+            preferences.put("filePath", file.getPath());
+            
+            // Update the stage title.
+            primaryStage.setTitle("AddressApp - " + file.getName());
+        } else {
+            preferences.remove("filePath");
+            
+            // Update the stage title.
+            primaryStage.setTitle("AddressApp");
+        }
+    }
+        
     /**
      * Returns the main stage.
      * @return
