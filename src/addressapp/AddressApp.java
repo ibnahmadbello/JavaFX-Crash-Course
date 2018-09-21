@@ -19,6 +19,7 @@ import javafx.stage.Stage;
 import javafx.collections.*;
 import addressmodel.Person;
 import addressmodel.PersonListWrapper;
+import addressview.BirthdayStatisticsController;
 import addressview.PersonEditDialogController;
 import addressview.PersonOverviewController;
 import addressview.RootLayoutController;
@@ -265,6 +266,32 @@ public class AddressApp extends Application {
             
             // Update the stage title.
             primaryStage.setTitle("AddressApp");
+        }
+    }
+    
+    /**
+     * Opens a dialog to show birthday statistics
+     */
+    public void showBirthdayStatistics(){
+        try {
+            // Load the fxml file and create a new stage for the popup.
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(AddressApp.class.getResource("/addressview/BirthdayStatistics.fxml"));
+            AnchorPane page = (AnchorPane) loader.load();
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Birthday Statistics");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            dialogStage.initOwner(primaryStage);
+            Scene scene = new Scene(page);
+            dialogStage.setScene(scene);
+            
+            // Set the persons into the controller.
+            BirthdayStatisticsController controller = loader.getController();
+            controller.setPersonData(personData);
+            
+            dialogStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
         
